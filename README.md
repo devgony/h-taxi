@@ -2,6 +2,8 @@
 
 ## Autoscaling
 
+- reference: https://labs.msaez.io/#/courses/Container-full/Hanwha-ContainerContainer-Orchestration/Manual-and-AutoScaling
+
 1. Autoscaling 테스트를 위한 k8s pod 생성
 
 ```yaml
@@ -131,6 +133,8 @@ siege                          1/1     Running             0          8m24s
 - Autoscaling 되어 pod 의 개수가 4개로 늘어나고 있는 것을 확인
 
 ## Zero-downtime deploy
+
+- reference: https://labs.msaez.io/#/courses/cna-full/f9dfa020-8d5d-11ec-818c-6d8ef2017004/ops-readiness
 
 1. `h-taxi-grap` deploy
 
@@ -320,6 +324,8 @@ Shortest transaction:           0.00
 - 100%에 달하는 무중단 배포 이지만 부하 테스트의 delay가 짧아 socket에러 일부 발생하여 0.17% 낮아진 수치
 
 ## Self Healing
+
+- reference: https://labs.msaez.io/#/courses/Container-full/Hanwha-ContainerContainer-Orchestration/Liveness-ReadinessProbe
 
 1. livenessProbe 설정을 추가한 이미지 yaml 파일 작성
 
