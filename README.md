@@ -89,3 +89,192 @@ siege                          1/1     Running             0          8m24s
 ```
 
 - Autoscaling 되어 pod 의 개수가 4개로 늘어나고 있는 것을 확인
+
+## Zero-downtime deploy
+
+1. `h-taxi-grap` deploy
+
+```yaml
+# deploy-h-taxi-grap.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: h-taxi-grap
+  labels:
+    app: h-taxi-grap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: h-taxi-grap
+  template:
+    metadata:
+      labels:
+        app: h-taxi-grap
+    spec:
+      containers:
+        - name: h-taxi-grap
+          image: jinyoung/order:stable
+          ports:
+            - containerPort: 8080
+```
+
+```
+kubectl apply -f deploy-h-taxi-grap.yaml
+```
+
+2. `h-taxi-grap` service
+
+```yaml
+# service-h-taxi-grap.yaml
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  name: "h-taxi-grap"
+  labels:
+    app: "h-taxi-grap"
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: "h-taxi-grap"
+  type: "ClusterIP"
+```
+
+```
+kubectl apply -f service-h-taxi-grap.yaml
+```
+
+3. 부하테스트 `siege` pod 설치
+
+```yaml
+# siege.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: siege
+spec:
+  containers:
+    - name: siege
+      image: apexacme/siege-nginx
+```
+
+4. `siege` 내부에서 부하 수행
+
+```
+kubectl exec -it siege -- /bin/bash
+siege> siege -c1 -t60S -v http://h-taxi-grap:8080/grap --delay=1S
+```
+
+5. `stable` -> `canary` 버전으로 수정 후 재 배포
+
+```diff
+# deploy-h-taxi-grap.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: h-taxi-grap
+  labels:
+    app: h-taxi-grap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: h-taxi-grap
+  template:
+    metadata:
+      labels:
+        app: h-taxi-grap
+    spec:
+      containers:
+        - name: h-taxi-grap
+-         image: jinyoung/order:stable
++         image: jinyoung/order:canary
+...
+```
+
+```
+kubectl apply -f deploy-h-taxi-grap.yaml
+```
+
+6. `siege` 결과 일부만 성공(80.35%)하고 나머지는 배포시 중단 된 것을 확인
+
+```diff
+siege>
+Lifting the server siege...
+Transactions:                   2368 hits
+-Availability:                  80.35 %
+Elapsed time:                  59.49 secs
+Data transferred:               0.80 MB
+Response time:                  0.02 secs
+Transaction rate:              39.81 trans/sec
+Throughput:                     0.01 MB/sec
+Concurrency:                    0.79
+Successful transactions:        2368
+Failed transactions:             579
+Longest transaction:            0.75
+Shortest transaction:           0.00
+```
+
+7. readinessProbe 추가, `canary` -> `stable` 버전 변경
+
+```diff
+# deploy-h-taxi-grap.yaml
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: h-taxi-grap
+  template:
+    metadata:
+      labels:
+        app: h-taxi-grap
+    spec:
+      containers:
+        - name: h-taxi-grap
+-         image: jinyoung/order:canary
++         image: jinyoung/order:stable
+          ports:
+            - containerPort: 8080
++         readinessProbe:
++           httpGet:
++             path: "/orders"
++             port: 8080
++           initialDelaySeconds: 10
++           timeoutSeconds: 2
++           periodSeconds: 5
++           failureThreshold: 10
+```
+
+8. 부하 재 발생 및 무중단 배포 테스트
+
+```
+siege> siege -c1 -t60S -v http://h-taxi-grap:8080/grap --delay=1S
+```
+
+```
+kubectl apply -f deploy-h-taxi-grap.yaml
+```
+
+```diff
+[error] socket: unable to connect sock.c:249: Connection reset by peer
+...
+siege>
+Lifting the server siege...
+Transactions:                   2928 hits
++Availability:                  99.83 %
+Elapsed time:                  59.05 secs
+Data transferred:               0.99 MB
+Response time:                  0.00 secs
+Transaction rate:              49.59 trans/sec
+Throughput:                     0.02 MB/sec
+Concurrency:                    0.23
+Successful transactions:        2928
+Failed transactions:               5
+Longest transaction:            0.04
+Shortest transaction:           0.00
+```
+
+- readinessProbe 설정을 통해 99.83%에 달하는 Availability를 보여주는 것을 확인 가능
+- 100%에 달하는 무중단 배포 이지만 부하 테스트의 delay가 짧아 socket에러 일부 발생하여 0.17% 낮아진 수치
