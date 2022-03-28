@@ -4,6 +4,46 @@
 
 1. Autoscaling 테스트를 위한 k8s pod 생성
 
+```yaml
+# h-taxi-grap.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: h-taxi-grap
+spec:
+  selector:
+    matchLabels:
+      run: h-taxi-grap
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: h-taxi-grap
+    spec:
+      containers:
+        - name: h-taxi-grap
+          image: devgony/h-taxi-grap:stable
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              cpu: 500m
+            requests:
+              cpu: 200m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: h-taxi-grap
+  labels:
+    run: h-taxi-grap
+spec:
+  ports:
+    - port: 80
+  selector:
+    run: h-taxi-grap
+```
+
 ```
 kubectl apply -f h-taxi-grap.yaml
 kubectl get all
@@ -114,7 +154,7 @@ spec:
     spec:
       containers:
         - name: h-taxi-grap
-          image: jinyoung/order:stable
+          image: devgony/h-taxi-grap:stable
           ports:
             - containerPort: 8080
 ```
@@ -189,8 +229,8 @@ spec:
     spec:
       containers:
         - name: h-taxi-grap
--         image: jinyoung/order:stable
-+         image: jinyoung/order:canary
+-         image: devgony/h-taxi-grap:stable
++         image: devgony/h-taxi-grap:canary
 ...
 ```
 
@@ -233,13 +273,13 @@ spec:
     spec:
       containers:
         - name: h-taxi-grap
--         image: jinyoung/order:canary
-+         image: jinyoung/order:stable
+-         image: devgony/h-taxi-grap:canary
++         image: devgony/h-taxi-grap:stable
           ports:
             - containerPort: 8080
 +         readinessProbe:
 +           httpGet:
-+             path: "/orders"
++             path: "/grap"
 +             port: 8080
 +           initialDelaySeconds: 10
 +           timeoutSeconds: 2
