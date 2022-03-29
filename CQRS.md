@@ -113,7 +113,7 @@ Transfer-Encoding: chunked
 }
 ```
 
-    - grabView 에서 grab, allocate, taxi 상태를 통합 조회 가능함
+- grabView 에서 grab, allocate, taxi 상태를 통합 조회 가능함
 
 6. Compensation Transaction 테스트(cancel grab)
 
@@ -183,4 +183,4 @@ Transfer-Encoding: chunked
 }
 ```
 
-    - grab cancel 정보가 grabView에 전달되어 `grabStatus`, `allocateStatus` 모두 cancelled 로 상태 변경 된 것을 통합 조회 가능함
+- grab cancel 정보가 grabView에 전달되어 `grabStatus`, `allocateStatus` 모두 cancelled 로 상태 변경 된 것을 통합 조회 가능함
