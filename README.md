@@ -374,7 +374,7 @@ spec:
 
 ```
 kubectl apply -f h-taxi-grap-liveness.yaml
-kubectl expose deploy h-taxi-grap --type=LoadBalanc포r --port=8080
+kubectl expose deploy h-taxi-grap --type=LoadBalancer --port=8080
 kubectl get svc
 ```
 
