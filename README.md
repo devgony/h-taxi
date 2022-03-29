@@ -107,6 +107,8 @@ siege> siege -c30 -t30S -v http://h-taxi-grap
 
 5. `h-taxi-grap` pod 에 대한 모니터링 수행
 
+- `siege` 부하 발생 전 pod 상태
+
 ```
 watch -d -n 1 kubectl get pod
 ```
@@ -119,6 +121,11 @@ h-taxi-grap-75f877867b-xz5cd   1/1     Running   0          10m
 siege                          1/1     Running   0          6m20s
 ```
 
+- `siege` 부하 발생 후 CPU usage 50%이상 증가한 것을 grapana 통해 확인
+![image](https://user-images.githubusercontent.com/51254761/160510381-c00a076e-e5f7-4476-ab45-d28d57a58a0b.png)
+
+- `siege` 부하 발생 후 pod 상태 확인
+
 ```
 Every 1.0s: kubectl get pod                                    labs-1676586095: Mon Mar 28 04:35:02 2022
 
@@ -130,7 +137,7 @@ h-taxi-grap-75f877867b-zpv46   0/1     ContainerCreating   0          8s
 siege                          1/1     Running             0          8m24s
 ```
 
-- Autoscaling 되어 pod 의 개수가 4개로 늘어나고 있는 것을 확인
+  - Autoscaling 되어 pod 의 개수가 4개로 늘어나고 있는 것이 확인 됌
 
 ## Zero-downtime deploy
 
