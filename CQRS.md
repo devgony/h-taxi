@@ -12,7 +12,7 @@ cd allocate
 mvn spring-boot:run
 ```
 
-2. grab 요청
+2. taxi에 대한 grab 요청
 
 ```sql
 http localhost:8081/grabs taxiId=1 taxiNum="서울32저4703"
@@ -39,7 +39,7 @@ Transfer-Encoding: chunked
 }
 ```
 
-3. 카프카에서 이벤트를 확인
+3. 카프카 consumer 이벤트 모니터링
 
 ```
 /usr/local/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic shopmall --from-beginning
@@ -121,7 +121,6 @@ Transfer-Encoding: chunked
 
 ```
 http DELETE localhost:8081/grabs/1
-
 ```
 
 ```sql
@@ -133,7 +132,6 @@ Date: Tue, 29 Mar 2022 04:13:27 GMT
 
 ```
 http localhost:8090/grabStatuses
-
 ```
 
 ```diff
