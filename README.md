@@ -121,9 +121,9 @@ h-taxi-grab-75f877867b-xz5cd   1/1     Running   0          10m
 siege                          1/1     Running   0          6m20s
 ```
 
-- `siege` 부하 발생 후 CPU usage 50%이상 증가한 것을 grabana 통해 확인
+- `siege` 부하 발생 후 grapana CPU usage 모니터링
   ![image](https://user-images.githubusercontent.com/51254761/160510381-c00a076e-e5f7-4476-ab45-d28d57a58a0b.png)
-
+  - 각 pod당 CPU는 최대 0.5core 이며 50%(0.25core)의 임계치를 넘은 것을 확인 가능
 - `siege` 부하 발생 후 pod 상태 확인
 
 ```
@@ -428,7 +428,7 @@ NAME                          READY   STATUS    RESTARTS   AGE
 h-taxi-grab-95cb5c959-cq4th   1/1     Running   1          2m51s
 ```
 
-6. 해당 pod 세부 로그에서 unhealthy 발견 후 self-killing & healing 수행한 것을 확인 가능
+6. describe 통해 해당 pod 세부 로그 확인
 
 ```
 kubectl describe pod/h-taxi-grab-95cb5c959-cq4th
@@ -498,3 +498,6 @@ Events:
 +  Normal   Started    56s (x2 over 3m25s)  kubelet, gke-cluster-2-default-pool-a1811fce-bfcl  Started container h-taxi-grab
 +  Normal   Pulled     56s                  kubelet, gke-cluster-2-default-pool-a1811fce-bfcl  Successfully pulled image "devgony/h-taxi-grab-liveness:latest" in 2.704500252s
 ```
+
+- livenessProbe가 5초에 한번씩 health check 수행하다가 unhealthy 발견 하여 `Warning` 발생
+- unhealthy 발견 즉시 `self-killing` & `healing` 수행한 것을 확인 가능
